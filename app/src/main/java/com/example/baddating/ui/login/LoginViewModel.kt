@@ -8,6 +8,8 @@ import com.example.baddating.data.LoginRepository
 import com.example.baddating.data.Result
 
 import com.example.baddating.R
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.launch
 
 class LoginViewModel(private val loginRepository: LoginRepository) : ViewModel() {
 
@@ -17,15 +19,17 @@ class LoginViewModel(private val loginRepository: LoginRepository) : ViewModel()
     private val _loginResult = MutableLiveData<LoginResult>()
     val loginResult: LiveData<LoginResult> = _loginResult
 
-    fun login(username: String, password: String) {
+    suspend fun login(username: String, password: String) = coroutineScope {
         // can be launched in a separate asynchronous job
-        val result = loginRepository.login(username, password)
+        launch {
+            val result = loginRepository.login(username, password)
 
-        if (result is Result.Success) {
-            _loginResult.value =
-                LoginResult(success = LoggedInUserView(displayName = result.data.displayName))
-        } else {
-            _loginResult.value = LoginResult(error = R.string.login_failed)
+            if (result is Result.Success) {
+                _loginResult.value =
+                    LoginResult(success = LoggedInUserView(displayName = result.data.displayName))
+            } else {
+                _loginResult.value = LoginResult(error = R.string.login_failed)
+            }
         }
     }
 
